@@ -31,7 +31,7 @@ class Restoran(Base):
     telefon: Mapped[str]=mapped_column(String(20),unique=True)
     acilis_saati: Mapped[time]=mapped_column(Time)
     kapanis_saati: Mapped[time]=mapped_column(Time)
-    aciklama: Mapped[str]=mapped_column(String(300))
+    aciklama: Mapped[str] = mapped_column(String(300))
     masalar: Mapped[list["Masa"]] = relationship(back_populates="restoran")
     rezervasyonlar: Mapped[list["Rezervasyon"]] = relationship(back_populates="restoran")
 
