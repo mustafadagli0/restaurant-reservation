@@ -20,7 +20,6 @@ class KullaniciCikti(BaseModel):
 
 
 class RestoranOlustur(BaseModel):
-    isletmeci_id: int
     ad: str = Field(min_length=1, max_length=100)
     adres: str = Field(min_length=1, max_length=250)
     telefon: str = Field(min_length=1, max_length=20)
@@ -62,7 +61,6 @@ class MasaCikti(BaseModel):
     y: int | None
 
 class RezervasyonOlustur(BaseModel):
-    kullanıcı_id: int
     masa_id: int
     tarih: date
     baslangic_saati: time
@@ -80,3 +78,11 @@ class RezervasyonCikti(BaseModel):
     bitis_saati: time
     kisi_sayisi: int
     durum: str
+
+class KullaniciGiris(BaseModel):
+    email: EmailStr
+    sifre: str
+
+class TokenCikti(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

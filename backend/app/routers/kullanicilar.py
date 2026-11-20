@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.database import get_db
+from app.security import token_olustur
 
 router = APIRouter(prefix="/kullanicilar", tags=["Kullanıcılar"])
 sifre_araci = PasswordHash.recommended()
@@ -33,3 +34,16 @@ def kullanici_olustur(veri: schemas.KullaniciOlustur, db: Session = Depends(get_
         raise HTTPException(status_code=409, detail="Bu e-posta zaten kayıtlı")
     db.refresh(kullanici)
     return kullanici
+
+@router.post("/giris", response_model=schemas.TokenCikti)
+def giris_yap(veri: schemas.KullaniciGiris, db: Session = Depends(get_db)):
+    kullanici = db.scalar(
+        select(models.Kullanici).where(models.Kullanici.email == str(veri.email))
+    )
+    if kullanici is None or not sifre_araci.verify(veri.sifre, kullanici.sifre_hash):
+        raise HTTPException(
+        status_code=401,
+        detail="E-posta veya şifre hatalı",
+    )
+    access_token = token_olustur(kullanici.id)
+    return schemas.TokenCikti(access_token=access_token)

@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from app import schemas, models
 from app.database import get_db
 from sqlalchemy import select
+from app.security import aktif_kullanici_getir
+
 
 router = APIRouter(prefix="/rezervasyonlar", tags=["Rezervasyonlar"])
 
@@ -13,11 +15,9 @@ def bitis_saati_hesapla(tarih: date, baslangic: time) -> time:
     return bitis_dt.time()
 
 @router.post("/", response_model=schemas.RezervasyonCikti, status_code=201)
-def rezervasyon_olustur(veri: schemas.RezervasyonOlustur, db: 
-    Session = Depends(get_db)):
-        kullanici = db.get(models.Kullanici, veri.kullanıcı_id)
-        if kullanici is None:
-            raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+def rezervasyon_olustur(veri: schemas.RezervasyonOlustur,
+    aktif_kullanici: models.Kullanici = Depends(aktif_kullanici_getir),
+    db: Session = Depends(get_db),):
         masa = db.get(models.Masa, veri.masa_id)
         if masa is None:
             raise HTTPException(status_code=404, detail="Masa bulunamadı")
@@ -47,7 +47,7 @@ def rezervasyon_olustur(veri: schemas.RezervasyonOlustur, db:
             detail="Bu masa bu saatlerde zaten rezerve edilmiş",
         )
         rezervasyon = models.Rezervasyon(
-        kullanıcı_id=veri.kullanıcı_id,
+        kullanıcı_id=aktif_kullanici.id,
         restoran_id=masa.restoran_id,
         masa_id=masa.id,
         tarih=veri.tarih,
@@ -60,4 +60,29 @@ def rezervasyon_olustur(veri: schemas.RezervasyonOlustur, db:
         db.commit()
         db.refresh(rezervasyon)
         return rezervasyon
-        
+
+
+@router.get("/", response_model=list[schemas.RezervasyonCikti])
+def rezervasyonlari_listele(aktif_kullanici: models.Kullanici = Depends(aktif_kullanici_getir),
+    db: Session = Depends(get_db),):
+    kullanici = db.get(models.Kullanici, aktif_kullanici.id)
+    if kullanici is None:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    rezervasyon_sorgusu = select(models.Rezervasyon).where(
+    models.Rezervasyon.kullanıcı_id == aktif_kullanici.id
+)
+    return db.scalars(rezervasyon_sorgusu).all()
+
+@router.patch("/{rezervasyon_id}/iptal", response_model=schemas.RezervasyonCikti)
+def rezervasyonu_iptal_et(rezervasyon_id: int,
+    aktif_kullanici: models.Kullanici = Depends(aktif_kullanici_getir),
+    db: Session = Depends(get_db),):
+    rezervasyon = db.get(models.Rezervasyon, rezervasyon_id)
+    if rezervasyon is None:
+        raise HTTPException(status_code=404, detail="Rezervasyon bulunamadı")
+    if rezervasyon.kullanıcı_id != aktif_kullanici.id:
+        raise HTTPException(status_code=403, detail="Bu rezervasyonu iptal etme yetkin yok")
+    rezervasyon.durum = "iptal"
+    db.commit()
+    db.refresh(rezervasyon)
+    return rezervasyon

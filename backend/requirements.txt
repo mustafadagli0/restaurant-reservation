@@ -96,3 +96,5 @@ watchfiles==1.3.0
 websockets==16.1.1
 
 pwdlib[argon2]
+PyJWT
+SQLAlchemy

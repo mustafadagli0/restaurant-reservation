@@ -5,18 +5,27 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.database import get_db
+from app.security import aktif_kullanici_getir
 
 router = APIRouter(prefix="/restoranlar", tags=["Restoranlar"])
 
 
 @router.post("/", response_model=schemas.RestoranCikti, status_code=201)
-def restoran_olustur(veri: schemas.RestoranOlustur, db: Session = Depends(get_db)):
-    isletmeci = db.get(models.Kullanici, veri.isletmeci_id)
-    if not isletmeci or isletmeci.rol != "isletmeci":
-        raise HTTPException(status_code=400, detail="Geçerli bir işletmeci bulunamadı")
+def restoran_olustur(veri: schemas.RestoranOlustur,
+    aktif_kullanici: models.Kullanici = Depends(aktif_kullanici_getir),
+    db: Session = Depends(get_db),):
+    if aktif_kullanici.rol != "isletmeci":
+        raise HTTPException(
+        status_code=403,
+        detail="Yalnızca işletmeciler restoran oluşturabilir",
+    )
 
     alanlar = veri.model_dump(exclude={"aciklama"})
-    restoran = models.Restoran(**alanlar, aciklama=veri.aciklama or "")
+    restoran = models.Restoran(
+    **alanlar,
+    isletmeci_id=aktif_kullanici.id,
+    aciklama=veri.aciklama or "",
+    )
     db.add(restoran)
     try:
         db.commit()
