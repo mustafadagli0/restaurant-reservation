@@ -87,6 +87,7 @@ export default function TabTwoScreen() {
           {restoranlar.map((restoran) => (
             
             <Link
+              key={restoran.id}
               href={{
                 pathname: '/explore/[id]',
                 params: { id: String(restoran.id) },
