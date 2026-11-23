@@ -7,8 +7,8 @@ import {
   TabListProps,
 } from 'expo-router/ui';
 import { SymbolView } from 'expo-symbols';
-import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
-
+import { Pressable, useColorScheme, View, StyleSheet,type PressableInstance } from 'react-native';
+import type { Ref } from 'react';
 import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
 
 import { ExternalLink } from './external-link';
@@ -27,13 +27,19 @@ export default function AppTabs() {
           <TabTrigger name="explore" href="/explore" asChild>
             <TabButton>Explore</TabButton>
           </TabTrigger>
+          <TabTrigger name="rezervasyonlar" href="/rezervasyonlar" asChild>
+            <TabButton>Rezervasyonlarım</TabButton>
+          </TabTrigger>
         </CustomTabList>
       </TabList>
     </Tabs>
   );
 }
+type TabButtonProps = Omit<TabTriggerSlotProps, 'ref'> & {
+  ref?: Ref<PressableInstance>;
+};
 
-export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+export function TabButton({ children, isFocused, ...props }: TabButtonProps) {
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
       <ThemedView

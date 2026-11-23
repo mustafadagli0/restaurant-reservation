@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList,Pressable,TextInput } from 'react-native';
 import { API_BASE_URL } from '@/constants/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '@/context/auth-context';
 
 
 export default function RestaurantDetail() {
@@ -16,11 +17,11 @@ const [hata, setHata] = useState<string | null>(null);
 const [seciliMasaId, setSeciliMasaId] = useState<number | null>(null);
 const [email, setEmail] = useState('');
 const [sifre, setSifre] = useState('');
-const [token, setToken] = useState<string | null>(null);
 const [tarih, setTarih] = useState('');
 const [baslangicSaati, setBaslangicSaati] = useState('');
 const [kisiSayisi, setKisiSayisi] = useState('');
 const [basariMesaji, setBasariMesaji] = useState<string | null>(null);
+const { token, setToken } = useAuth();
 
 useEffect(() => {
   async function masalariGetir() {
