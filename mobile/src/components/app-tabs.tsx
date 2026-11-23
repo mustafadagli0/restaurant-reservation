@@ -31,6 +31,10 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>Rezervasyonlarım</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="calendar" md="calendar_month" />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="hesap">
+      <NativeTabs.Trigger.Label>Hesap</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="person.crop.circle" md="account_circle" />
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

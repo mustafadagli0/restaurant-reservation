@@ -30,6 +30,9 @@ export default function AppTabs() {
           <TabTrigger name="rezervasyonlar" href="/rezervasyonlar" asChild>
             <TabButton>Rezervasyonlarım</TabButton>
           </TabTrigger>
+          <TabTrigger name="hesap" href="/hesap" asChild>
+           <TabButton>Hesap</TabButton>
+          </TabTrigger>
         </CustomTabList>
       </TabList>
     </Tabs>

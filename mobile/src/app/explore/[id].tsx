@@ -15,13 +15,11 @@ const [masalar, setMasalar] = useState<{ id: number; kapasite: number }[]>([]);
 const [yukleniyor, setYukleniyor] = useState(true);
 const [hata, setHata] = useState<string | null>(null);
 const [seciliMasaId, setSeciliMasaId] = useState<number | null>(null);
-const [email, setEmail] = useState('');
-const [sifre, setSifre] = useState('');
 const [tarih, setTarih] = useState('');
 const [baslangicSaati, setBaslangicSaati] = useState('');
 const [kisiSayisi, setKisiSayisi] = useState('');
 const [basariMesaji, setBasariMesaji] = useState<string | null>(null);
-const { token, setToken } = useAuth();
+const { token } = useAuth();
 
 useEffect(() => {
   async function masalariGetir() {
@@ -46,25 +44,6 @@ useEffect(() => {
   masalariGetir();
 }, [id]);
 
-async function girisYap() {
-  try {
-    const cevap = await fetch(`${API_BASE_URL}/kullanicilar/giris`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, sifre }),
-    });
-
-    if (!cevap.ok) {
-      throw new Error('Giriş başarısız');
-    }
-
-    const veri: { access_token: string } = await cevap.json();
-    setToken(veri.access_token);
-    setHata(null);
-  } catch {
-    setHata('Giriş başarısız. E-posta ve şifreni kontrol et.');
-  }
-}
 
 async function rezervasyonOlustur() {
   if (seciliMasaId === null) {
@@ -114,25 +93,6 @@ const insets = useSafeAreaInsets();
       <ThemedText type="title">Restaurant {id}</ThemedText>
         {yukleniyor && <ActivityIndicator />}
         {hata && <ThemedText>{hata}</ThemedText>}
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholder="E-posta"
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        
-        <TextInput
-          value={sifre}
-          onChangeText={setSifre}
-          placeholder="Şifre"
-          secureTextEntry
-        />
-        <Pressable onPress={girisYap}>
-            <ThemedText>Giriş Yap</ThemedText>
-        </Pressable>
-
-        {token && <ThemedText>Giriş başarılı</ThemedText>}
         <TextInput
           value={tarih}
           onChangeText={setTarih}

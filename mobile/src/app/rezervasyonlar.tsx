@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList,Pressable } from 'react-native';
 import { API_BASE_URL } from '@/constants/api';
 import { useAuth } from '@/context/auth-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RezervasyonlarScreen() {
 
@@ -18,6 +19,7 @@ export default function RezervasyonlarScreen() {
   durum: string;
 };
 
+const insets = useSafeAreaInsets();
 const { token } = useAuth();
 const [rezervasyonlar, setRezervasyonlar] = useState<Rezervasyon[]>([]);
 const [yukleniyor, setYukleniyor] = useState(true);
@@ -91,7 +93,12 @@ async function rezervasyonuIptalEt(id: number) {
 
   return (
     
-    <ThemedView>
+    <ThemedView
+      style={{
+      flex: 1,
+      paddingTop: insets.top + 16,
+      paddingHorizontal: 16,
+    }}>
       {yukleniyor && <ActivityIndicator />}
       {hata && <ThemedText>{hata}</ThemedText>}
       {!yukleniyor && !hata && rezervasyonlar.length === 0 && (
