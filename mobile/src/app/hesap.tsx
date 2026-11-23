@@ -13,6 +13,9 @@ const [sifre, setSifre] = useState('');
 const [hata, setHata] = useState<string | null>(null);
 const { token, setToken } = useAuth();
 const insets = useSafeAreaInsets();
+const [adSoyad, setAdSoyad] = useState('');
+const [kayitModu, setKayitModu] = useState(false);
+const [bilgiMesaji, setBilgiMesaji] = useState<string | null>(null);
 
 
 
@@ -37,6 +40,35 @@ async function girisYap() {
   }
 }
 
+async function kayitOl() {
+  try {
+    const cevap = await fetch(`${API_BASE_URL}/kullanicilar/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ad_soyad: adSoyad,
+        email,
+        sifre,
+        rol: 'musteri',
+      }),
+    });
+
+    const veri = await cevap.json();
+
+    if (!cevap.ok) {
+      throw new Error(veri.detail ?? 'Kayıt başarısız.');
+    }
+
+    setBilgiMesaji('Hesap oluşturuldu. Şimdi giriş yapabilirsin.');
+    setKayitModu(false);
+    setHata(null);
+  } catch (hata) {
+    setHata(
+      hata instanceof Error ? hata.message : 'Kayıt sırasında hata oluştu.'
+    );
+  }
+}
+
 
   return (
     <ThemedView
@@ -55,27 +87,49 @@ async function girisYap() {
         </>
         ) : (
         <>
+          {kayitModu && (
             <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="E-posta"
-              keyboardType="email-address"
-              autoCapitalize="none"
+              value={adSoyad}
+              onChangeText={setAdSoyad}
+              placeholder="Ad Soyad"
+              autoCapitalize="words"
             />
+          )}
 
-            <TextInput
-              value={sifre}
-              onChangeText={setSifre}
-              placeholder="Şifre"
-              secureTextEntry
-            />
-            <Pressable onPress={girisYap}>
-                <ThemedText>Giriş Yap</ThemedText>
-            </Pressable>
-          </>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="E-posta"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <TextInput
+            value={sifre}
+            onChangeText={setSifre}
+            placeholder="Şifre"
+            secureTextEntry
+          />
+
+          <Pressable onPress={kayitModu ? kayitOl : girisYap}>
+            <ThemedText>{kayitModu ? 'Kayıt Ol' : 'Giriş Yap'}</ThemedText>
+          </Pressable>
+      
+          <Pressable
+            onPress={() => {
+              setKayitModu(!kayitModu);
+              setHata(null);
+              setBilgiMesaji(null);
+            }}>
+            <ThemedText>
+              {kayitModu ? 'Giriş ekranına dön' : 'Hesap oluştur'}
+            </ThemedText>
+          </Pressable>
+        </>
         )}
 
         {hata && <ThemedText>{hata}</ThemedText>}
+        {bilgiMesaji && <ThemedText>{bilgiMesaji}</ThemedText>}
     </ThemedView>
   );
 }
