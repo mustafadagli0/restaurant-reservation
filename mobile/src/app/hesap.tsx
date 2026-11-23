@@ -47,9 +47,14 @@ async function girisYap() {
     }}>
       <ThemedText type="title">Hesabım</ThemedText>
       {token ? (
-        <ThemedText>Giriş yapıldı</ThemedText>
+        <>
+            <ThemedText>Giriş yapıldı</ThemedText>
+            <Pressable onPress={() => setToken(null)}>
+              <ThemedText>Çıkış Yap</ThemedText>
+            </Pressable>
+        </>
         ) : (
-          <>
+        <>
             <TextInput
               value={email}
               onChangeText={setEmail}

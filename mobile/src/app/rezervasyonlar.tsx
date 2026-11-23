@@ -28,6 +28,7 @@ const [hata, setHata] = useState<string | null>(null);
 useEffect(() => {
   async function rezervasyonlariGetir() {
     if (!token) {
+      setRezervasyonlar([]);
       setHata('Önce giriş yapmalısın.');
       setYukleniyor(false);
       return;
