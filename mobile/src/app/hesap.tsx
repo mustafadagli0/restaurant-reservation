@@ -16,7 +16,17 @@ const insets = useSafeAreaInsets();
 const [adSoyad, setAdSoyad] = useState('');
 const [kayitModu, setKayitModu] = useState(false);
 const [bilgiMesaji, setBilgiMesaji] = useState<string | null>(null);
-
+const [rol, setRol] = useState<'musteri' | 'isletmeci'>('musteri');
+const [restoranAdi, setRestoranAdi] = useState('');
+const [restoranAdresi, setRestoranAdresi] = useState('');
+const [restoranTelefonu, setRestoranTelefonu] = useState('');
+const [acilisSaati, setAcilisSaati] = useState('');
+const [kapanisSaati, setKapanisSaati] = useState('');
+const [aciklama, setAciklama] = useState('');
+const [restoranId, setRestoranId] = useState<number | null>(null);
+const [masaNo, setMasaNo] = useState('');
+const [masaKapasitesi, setMasaKapasitesi] = useState('');
+const [masaKonumu, setMasaKonumu] = useState('');
 
 
 
@@ -49,7 +59,7 @@ async function kayitOl() {
         ad_soyad: adSoyad,
         email,
         sifre,
-        rol: 'musteri',
+        rol,
       }),
     });
 
@@ -69,6 +79,86 @@ async function kayitOl() {
   }
 }
 
+async function restoranOlustur() {
+  try {
+    const cevap = await fetch(`${API_BASE_URL}/restoranlar/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        ad: restoranAdi,
+        adres: restoranAdresi,
+        telefon: restoranTelefonu,
+        acilis_saati: acilisSaati,
+        kapanis_saati: kapanisSaati,
+        aciklama,
+      }),
+    });
+
+    const veri = await cevap.json();
+
+    if (!cevap.ok) {
+      throw new Error(veri.detail ?? 'Restoran oluşturulamadı.');
+    }
+    setRestoranId(veri.id);
+
+    setBilgiMesaji(`Restoran oluşturuldu: ${veri.ad}`);
+    setHata(null);
+  } catch (hata) {
+    setHata(
+      hata instanceof Error ? hata.message : 'Restoran oluşturulurken hata oluştu.'
+    );
+  }
+}
+
+async function masaOlustur() {
+  if (restoranId === null) {
+    setHata('Önce restoran oluşturmalısın.');
+    return;
+  }
+
+  try {
+    const cevap = await fetch(
+      `${API_BASE_URL}/restoranlar/${restoranId}/masalar/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          masa_no: Number(masaNo),
+          kapasite: Number(masaKapasitesi),
+          konum: masaKonumu,
+        }),
+      }
+    );
+
+    const veri = await cevap.json();
+
+    if (!cevap.ok) {
+        const detay =
+        typeof veri.detail === 'string'
+        ? veri.detail
+        : JSON.stringify(veri.detail);
+
+        throw new Error(detay ?? 'Masa oluşturulamadı.');
+    }
+
+    setBilgiMesaji(`Masa ${veri.masa_no} oluşturuldu.`);
+    setHata(null);
+    setMasaNo('');
+    setMasaKapasitesi('');
+    setMasaKonumu('');
+  } catch (hata) {
+    setHata(
+      hata instanceof Error ? hata.message : 'Masa oluşturulurken hata oluştu.'
+    );
+  }
+}
+
 
   return (
     <ThemedView
@@ -81,6 +171,47 @@ async function kayitOl() {
       {token ? (
         <>
             <ThemedText>Giriş yapıldı</ThemedText>
+            <TextInput
+              value={restoranAdi}
+              onChangeText={setRestoranAdi}
+              placeholder="Restoran adı"
+            />
+            <TextInput value={restoranAdresi} onChangeText={setRestoranAdresi} placeholder="Adres" />
+            <TextInput value={restoranTelefonu} onChangeText={setRestoranTelefonu} placeholder="Telefon" />
+            <TextInput value={acilisSaati} onChangeText={setAcilisSaati} placeholder="Açılış saati (örn. 09:00)" />
+            <TextInput value={kapanisSaati} onChangeText={setKapanisSaati} placeholder="Kapanış saati (örn. 22:00)" />
+            <TextInput value={aciklama} onChangeText={setAciklama} placeholder="Açıklama (isteğe bağlı)" />
+            <Pressable onPress={restoranOlustur}>
+                <ThemedText>Restoran Oluştur</ThemedText>
+            </Pressable>
+            {restoranId !== null && (
+              <>
+                <ThemedText type="subtitle">Masa ekle</ThemedText>
+
+                <TextInput
+                  value={masaNo}
+                  onChangeText={setMasaNo}
+                  placeholder="Masa numarası"
+                  keyboardType="numeric"
+                />
+
+                <TextInput
+                  value={masaKapasitesi}
+                  onChangeText={setMasaKapasitesi}
+                  placeholder="Kaç kişilik?"
+                  keyboardType="numeric"
+                />
+
+                <TextInput
+                  value={masaKonumu}
+                  onChangeText={setMasaKonumu}
+                  placeholder="Konum (örn. Bahçe)"
+                />
+                <Pressable onPress={masaOlustur}>
+                    <ThemedText>Masa Ekle</ThemedText>
+                </Pressable>
+              </>
+            )}
             <Pressable onPress={() => setToken(null)}>
               <ThemedText>Çıkış Yap</ThemedText>
             </Pressable>
@@ -95,6 +226,23 @@ async function kayitOl() {
               autoCapitalize="words"
             />
           )}
+          {kayitModu && (
+          <>
+            <ThemedText>Hesap türü</ThemedText>
+
+            <Pressable onPress={() => setRol('musteri')}>
+              <ThemedText>
+                {rol === 'musteri' ? '✓ Müşteri' : 'Müşteri'}
+              </ThemedText>
+            </Pressable>
+
+            <Pressable onPress={() => setRol('isletmeci')}>
+              <ThemedText>
+                {rol === 'isletmeci' ? '✓ İşletmeci' : 'İşletmeci'}
+              </ThemedText>
+            </Pressable>
+          </>
+        )}
 
           <TextInput
             value={email}
