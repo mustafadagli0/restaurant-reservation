@@ -100,12 +100,12 @@ async function rezervasyonuIptalEt(id: number) {
       paddingTop: insets.top + 16,
       paddingHorizontal: 16,
     }}>
+      <ThemedText type="title">Rezervasyonlarım</ThemedText>
       {yukleniyor && <ActivityIndicator />}
       {hata && <ThemedText>{hata}</ThemedText>}
       {!yukleniyor && !hata && rezervasyonlar.length === 0 && (
       <ThemedText>Henüz rezervasyonun yok.</ThemedText>
       )}
-      <ThemedText type="title">Rezervasyonlarım</ThemedText>
       <FlatList
       data={rezervasyonlar}
       keyExtractor={(rezervasyon) => String(rezervasyon.id)}
