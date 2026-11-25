@@ -17,6 +17,7 @@ const [adSoyad, setAdSoyad] = useState('');
 const [kayitModu, setKayitModu] = useState(false);
 const [bilgiMesaji, setBilgiMesaji] = useState<string | null>(null);
 const [rol, setRol] = useState<'musteri' | 'isletmeci'>('musteri');
+const [girisYapanRol, setGirisYapanRol] = useState<'musteri' | 'isletmeci' | null>(null);
 const [restoranAdi, setRestoranAdi] = useState('');
 const [restoranAdresi, setRestoranAdresi] = useState('');
 const [restoranTelefonu, setRestoranTelefonu] = useState('');
@@ -43,12 +44,24 @@ async function girisYap() {
     }
 
     const veri: { access_token: string } = await cevap.json();
+
+    const profilCevap = await fetch(`${API_BASE_URL}/kullanicilar/ben`, {
+      headers: { Authorization: `Bearer ${veri.access_token}` },
+    });
+
+    if (!profilCevap.ok) {
+      throw new Error('Kullanıcı bilgisi alınamadı.');
+    }
+
+    const profil: { rol: 'musteri' | 'isletmeci' } = await profilCevap.json();
+
     setToken(veri.access_token);
-    setHata(null);
-  } catch {
-    setHata('Giriş başarısız. E-posta ve şifreni kontrol et.');
-  }
-}
+    setGirisYapanRol(profil.rol);
+        setHata(null);
+      } catch {
+        setHata('Giriş başarısız. E-posta ve şifreni kontrol et.');
+      }
+    }
 
 async function kayitOl() {
   try {
@@ -171,6 +184,8 @@ async function masaOlustur() {
       {token ? (
         <>
             <ThemedText>Giriş yapıldı</ThemedText>
+            {girisYapanRol === 'isletmeci' && (
+          <>
             <TextInput
               value={restoranAdi}
               onChangeText={setRestoranAdi}
@@ -212,6 +227,8 @@ async function masaOlustur() {
                 </Pressable>
               </>
             )}
+            </>
+        )}
             <Pressable onPress={() => setToken(null)}>
               <ThemedText>Çıkış Yap</ThemedText>
             </Pressable>

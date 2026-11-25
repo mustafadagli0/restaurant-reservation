@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.database import get_db
-from app.security import token_olustur
+from app.security import aktif_kullanici_getir, token_olustur
 
 router = APIRouter(prefix="/kullanicilar", tags=["Kullanıcılar"])
 sifre_araci = PasswordHash.recommended()
@@ -47,3 +47,9 @@ def giris_yap(veri: schemas.KullaniciGiris, db: Session = Depends(get_db)):
     )
     access_token = token_olustur(kullanici.id)
     return schemas.TokenCikti(access_token=access_token)
+
+@router.get("/ben", response_model=schemas.KullaniciCikti)
+def benim_bilgilerim(
+    aktif_kullanici: models.Kullanici = Depends(aktif_kullanici_getir),
+):
+    return aktif_kullanici
