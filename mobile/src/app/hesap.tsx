@@ -25,6 +25,9 @@ const [acilisSaati, setAcilisSaati] = useState('');
 const [kapanisSaati, setKapanisSaati] = useState('');
 const [aciklama, setAciklama] = useState('');
 const [restoranId, setRestoranId] = useState<number | null>(null);
+const [restoranlarim, setRestoranlarim] = useState<
+  { id: number; ad: string; adres: string }[]
+>([]);
 const [masaNo, setMasaNo] = useState('');
 const [masaKapasitesi, setMasaKapasitesi] = useState('');
 const [masaKonumu, setMasaKonumu] = useState('');
@@ -54,6 +57,22 @@ async function girisYap() {
     }
 
     const profil: { rol: 'musteri' | 'isletmeci' } = await profilCevap.json();
+    if (profil.rol === 'isletmeci') {
+    const restoranCevap = await fetch(`${API_BASE_URL}/restoranlar/benim`, {
+      headers: { Authorization: `Bearer ${veri.access_token}` },
+    });
+
+    if (!restoranCevap.ok) {
+      throw new Error('İşletmeci restoranları alınamadı.');
+    }
+
+    const restoranVerileri: { id: number; ad: string; adres: string }[] =
+      await restoranCevap.json();
+
+    setRestoranlarim(restoranVerileri);
+  } else {
+    setRestoranlarim([]);
+  }
 
     setToken(veri.access_token);
     setGirisYapanRol(profil.rol);
@@ -116,6 +135,10 @@ async function restoranOlustur() {
       throw new Error(veri.detail ?? 'Restoran oluşturulamadı.');
     }
     setRestoranId(veri.id);
+    setRestoranlarim((onceki) => [
+    ...onceki,
+    { id: veri.id, ad: veri.ad, adres: veri.adres },
+    ]);
 
     setBilgiMesaji(`Restoran oluşturuldu: ${veri.ad}`);
     setHata(null);
@@ -186,6 +209,23 @@ async function masaOlustur() {
             <ThemedText>Giriş yapıldı</ThemedText>
             {girisYapanRol === 'isletmeci' && (
           <>
+          <ThemedText type="subtitle">Restoranlarım</ThemedText>
+
+          {restoranlarim.length === 0 ? (
+            <ThemedText>Henüz kayıtlı restoranın yok.</ThemedText>
+          ) : (
+            restoranlarim.map((restoran) => (
+              <Pressable
+                key={restoran.id}
+                onPress={() => setRestoranId(restoran.id)}
+              >
+                <ThemedText>
+                  {restoran.ad}{restoranId === restoran.id ? ' (Seçili)' : ''}
+                </ThemedText>
+                <ThemedText>{restoran.adres}</ThemedText>
+              </Pressable>
+            ))
+          )}
             <TextInput
               value={restoranAdi}
               onChangeText={setRestoranAdi}
@@ -200,6 +240,7 @@ async function masaOlustur() {
                 <ThemedText>Restoran Oluştur</ThemedText>
             </Pressable>
             {restoranId !== null && (
+              
               <>
                 <ThemedText type="subtitle">Masa ekle</ThemedText>
 

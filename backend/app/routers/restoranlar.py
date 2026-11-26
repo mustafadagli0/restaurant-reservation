@@ -39,3 +39,17 @@ def restoran_olustur(veri: schemas.RestoranOlustur,
 @router.get("/", response_model=list[schemas.RestoranCikti])
 def restoranlari_listele(db: Session = Depends(get_db)):
     return db.scalars(select(models.Restoran).order_by(models.Restoran.id)).all()
+
+@router.get("/benim", response_model=list[schemas.RestoranCikti])
+def bana_ait_restoranlari(
+    aktif_kullanici: models.Kullanici = Depends(aktif_kullanici_getir),
+    db: Session = Depends(get_db),
+):
+    if aktif_kullanici.rol != "isletmeci":
+        raise HTTPException(status_code=403, detail="Bu alan işletmecilere ait")
+
+    return db.scalars(
+        select(models.Restoran)
+        .where(models.Restoran.isletmeci_id == aktif_kullanici.id)
+        .order_by(models.Restoran.id)
+    ).all()
